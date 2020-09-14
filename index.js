@@ -1,7 +1,10 @@
 import bent from 'bent'
+import urlify from 'urlify'
 import fixed from 'fixed-chunker'
 import dagdb from '../dagdb/src/index.js'
 import FeedParser from 'feedparser'
+
+const folderName = urlify.create()
 
 const headers = {'user-agent': 'fork-this-podcast-v0.0.0-dev'}
 const follow = (...args) => {
@@ -84,8 +87,9 @@ const updateFeed = async (feeds, url) => {
       value = { item, cache: {}, enclosures: {} }
       await podcast.items.set(id, value)
     }
+    // Disabled for now
+    /*
     const { cache } = value
-    console.log({cache})
     for (const { url } of value.item.enclosures) {
       const resp = await getOrCache(url, null, cache[url])
       if (resp.status === 304) continue
@@ -98,6 +102,7 @@ const updateFeed = async (feeds, url) => {
       value.enclosures[url] = fixed(resp, 1024 * 100)
     }
     promises.push(podcast.items.set(id, value, {filter}))
+    */
   }
   await Promise.all(promises)
   podcast.items = await podcast.items.commit()
@@ -111,9 +116,18 @@ const getDatabase = async () => {
   return db.update()
 }
 
+const writeFeeds = async feeds => {
+  const pending = []
+  for await (const [, podcast] of feeds.all()) {
+    const f = 'podcasts/' + filename(podast.title) + '.html'
+    pending.push(templates.podcast(podcast).then(html => fs.writeFile(f, html))
+  }
+  return Promise.all(pending)
+}
+
 const run = async () => {
-  // const url = 'https://rss.art19.com/nice-white-parents'
-  const url = 'https://changelog.com/jsparty/feed'
+  const url = 'https://rss.art19.com/nice-white-parents'
+  // const url = 'https://changelog.com/jsparty/feed'
   let db = await getDatabase()
 
   let feeds = await db.get('feeds')
@@ -122,5 +136,7 @@ const run = async () => {
 
   feeds = await db.get('feeds')
   await updateFeed(feeds, url)
+  feeds = await feeds.commit()
+  await writeFeeds(feeds)
 }
 run()
