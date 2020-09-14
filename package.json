@@ -1,0 +1,19 @@
+{
+  "name": "fork-this-podcast",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Mikeal Rogers <mikeal.rogers@gmail.com> (https://www.mikealrogers.com/)",
+  "license": "(Apache-2.0 AND MIT)",
+  "dependencies": {
+    "bent": "^7.3.10",
+    "htmlparser2": "^4.1.0",
+    "feedparser": "^2.2.10",
+    "fixed-chunker": "^0.0.6"
+  }
+}
