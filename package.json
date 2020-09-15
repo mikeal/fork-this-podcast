@@ -12,9 +12,14 @@
   "license": "(Apache-2.0 AND MIT)",
   "dependencies": {
     "bent": "^7.3.10",
-    "htmlparser2": "^4.1.0",
     "feedparser": "^2.2.10",
     "fixed-chunker": "^0.0.6",
+    "htmlparser2": "^4.1.0",
+    "nanohtml": "^1.9.1",
+    "pretty": "^2.0.0",
     "urlify": "^0.3.6"
+  },
+  "devDependencies": {
+    "standard": "^14.3.4"
   }
 }

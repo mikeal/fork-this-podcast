@@ -1,17 +1,20 @@
 import bent from 'bent'
 import urlify from 'urlify'
+import pretty from 'pretty'
 import fixed from 'fixed-chunker'
-import dagdb from '../dagdb/src/index.js'
+import * as templates from './templates.js'
+import dagdb from '../../dagdb/src/index.js'
+import { promises as fs } from 'fs'
 import FeedParser from 'feedparser'
 
-const folderName = urlify.create()
+const filename = urlify.create()
 
-const headers = {'user-agent': 'fork-this-podcast-v0.0.0-dev'}
+const headers = { 'user-agent': 'fork-this-podcast-v0.0.0-dev' }
 const follow = (...args) => {
   const req = bent(302, ...args)
   return async (...args) => {
     let resp = await req(...args)
-    while(resp.statusCode === 302) {
+    while (resp.statusCode === 302) {
       resp = await req(resp.headers.location, ...args.slice(1))
     }
     return resp
@@ -110,17 +113,20 @@ const updateFeed = async (feeds, url) => {
 }
 
 const getDatabase = async () => {
-  let db = await dagdb.create('inmem')
-  let feeds = await db.empty()
-  await db.set({feeds})
+  const db = await dagdb.create('inmem')
+  const feeds = await db.empty()
+  await db.set({ feeds })
   return db.update()
 }
 
 const writeFeeds = async feeds => {
   const pending = []
   for await (const [, podcast] of feeds.all()) {
-    const f = 'podcasts/' + filename(podast.title) + '.html'
-    pending.push(templates.podcast(podcast).then(html => fs.writeFile(f, html))
+    const f = 'podcasts/' + filename(podcast.meta.title) + '.html'
+    await fs.mkdir('podcasts', { recursive: true })
+    pending.push(templates.podcast(podcast).then(html => {
+      return fs.writeFile(f, pretty(html.toString(), { ocd: true }))
+    }))
   }
   return Promise.all(pending)
 }
@@ -128,7 +134,7 @@ const writeFeeds = async feeds => {
 const run = async () => {
   const url = 'https://rss.art19.com/nice-white-parents'
   // const url = 'https://changelog.com/jsparty/feed'
-  let db = await getDatabase()
+  const db = await getDatabase()
 
   let feeds = await db.get('feeds')
   await updateFeed(feeds, url)
